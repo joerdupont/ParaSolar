@@ -43,3 +43,26 @@ for i in range(0, num_of_blocks_to_add):
   # Tell everyone about it!
     #print 'Block #{} has been added to the blockchain!'.format(block_to_add.index)
     #print "Hash: {}\n".format(block_to_add.hash)
+    
+    import pickle
+  # Tell everyone about it!
+    #print 'Block #{} has been added to the blockchain!'.format(block_to_add.index)
+    #print "Hash: {}\n".format(block_to_add.hash)
+with open('blockchain.txt', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump(blockchain, f) 
+        
+
+def transaction():
+# load the blockchain:
+    with open('blockchain.txt','rb') as f:  # Python 3: open(..., 'rb')
+        b = pickle.load(f)
+    #add the new transaction
+    block_to_add = next_block(b[-1])
+    b.append(block_to_add)
+    #save the blockchain
+    with open('blockchain.txt', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump(b, f)
+        
+transaction()    
+with open('blockchain.txt','rb') as f:  # Python 3: open(..., 'rb')
+        blockchain = pickle.load(f)        
