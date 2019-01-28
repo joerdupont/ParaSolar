@@ -1,0 +1,104 @@
+import time
+board = pyfirmata.Arduino('COM3')
+
+class house:
+    def _init_(self):
+        self.supply = 'main Generator'
+        self.price = 0
+        self.state = 'seller'
+        self.firstrelay = 0
+        self.secondrelay = 0
+        self.load = 100
+    
+    house1 = house()
+    house1.supply = 'own battery'
+    house1.price = 0
+    house1.state = 'seller'
+    house1.firstrelay = 7
+    house1.secondrelay = 8
+    
+    house2 = house()
+    house2.supply = 'own battery'
+    house2.price = 0
+    house2.state = 'seller'
+    house2.firstrelay = 5
+    house2.secondrelay = 6
+    house2.load = 90
+    
+    house3 = house()
+    house3.supply = 'own battery'
+    house3.price = 50
+    house3.state = 'buyer'
+    house3.firstrelay = 3
+    house3.secondrelay = 4
+    house3.load = 25
+    
+    house4 = house()
+    house4.supply = 'own battery'
+    house4.price = 100
+    house4.state = 'buyer'
+    house4.firstrelay = 1
+    house4.secondrelay = 2
+    house4.load = 0
+    
+    
+        
+    def connect_to_solar(self):
+            first_relay_to_change = self.firstrelay
+            second_relay_to_change = self.secondrelay
+            board.digital[first_relay_to_change].write(0)   #turns the first relay on
+            board.digital[second_relay_to_change].write(0)  #turns the second relay on  
+            self.supply = 'own battery'
+            
+    def connect_to_main(self):
+            first_relay_to_change = self.firstrelay
+            second_relay_to_change = self.secondrelay
+            board.digital[first_relay_to_change].write(1)   #turns the first relay off
+            board.digital[second_relay_to_change].write(1)  #turns the second relay off 
+            self.supply = 'main generator'
+            
+    def connect_to_other_house(self):
+            first_relay_to_change = self.firstrelay
+            second_relay_to_change = self.secondrelay
+            board.digital[first_relay_to_change].write(0)   #turns the first relay on
+            board.digital[second_relay_to_change].write(1)  #turns the second relay off  
+            self.supply = 'exchange'
+            
+    def price_comparison():
+        liste = [house1,house2,house3,house4]
+        a = liste[0].price
+        k = 0
+        for i in range(1, len(liste)):
+                if liste[i]>a:
+                    a = liste[i]
+                    k = i
+        return(liste[k]) 
+    
+    def bigger_load:
+        liste = [house1,house2,house3,house4]
+        a = liste[0].load
+        k = 0
+        for i in range(1, len(liste)):
+                if liste[i]>a:
+                    a = liste[i]
+                    k = i
+        return(liste[k]) 
+        
+                    
+                    
+    def connect_2_houses(self,other):
+        self.connect_to_other_house
+        other.connect_to_other_house
+        
+    def main_program():
+        house1.connect_to_solar
+        house2.connect_to_solar
+        house3.connect_to_solar
+        house4.connect_to_solar
+        buyer = price_comparison()
+        seller = bigger_load()
+        buyer.connect_to_other_house(seller)
+        house3.connect_to_main
+        time.sleep(20.0)
+        seller.connect_to_solar
+        buyer.connect_to_solar
