@@ -1,0 +1,5 @@
+#instantiate the neighborhood
+#instantiate the dispatcher/sun
+#each house has a schedule and timestamps
+All houses dump schedule 
+loop through Queue
