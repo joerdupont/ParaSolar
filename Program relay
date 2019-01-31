@@ -1,4 +1,6 @@
+from pyfirmata import Arduino,util
 import time
+import random
 board = pyfirmata.Arduino('COM3')
 
 class house:
@@ -9,37 +11,38 @@ class house:
         self.firstrelay = 0
         self.secondrelay = 0
         self.load = 100
+        self.bankaccount = 5000
     
-    house1 = house()
-    house1.supply = 'own battery'
-    house1.price = 0
-    house1.state = 'seller'
-    house1.firstrelay = 7
-    house1.secondrelay = 8
+house1 = house()
+house1.supply = 'own battery'
+house1.price = 0
+house1.state = 'seller'
+house1.firstrelay = 7
+house1.secondrelay = 8
     
-    house2 = house()
-    house2.supply = 'own battery'
-    house2.price = 0
-    house2.state = 'seller'
-    house2.firstrelay = 5
-    house2.secondrelay = 6
-    house2.load = 90
+house2 = house()
+house2.supply = 'own battery'
+house2.price = 0
+house2.state = 'seller'
+house2.firstrelay = 5
+house2.secondrelay = 6
+house2.load = 90
     
-    house3 = house()
-    house3.supply = 'own battery'
-    house3.price = 50
-    house3.state = 'buyer'
-    house3.firstrelay = 3
-    house3.secondrelay = 4
-    house3.load = 25
+house3 = house()
+house3.supply = 'own battery'
+house3.price = 50
+house3.state = 'buyer'
+house3.firstrelay = 3
+house3.secondrelay = 4
+house3.load = 25    
     
-    house4 = house()
-    house4.supply = 'own battery'
-    house4.price = 100
-    house4.state = 'buyer'
-    house4.firstrelay = 1
-    house4.secondrelay = 2
-    house4.load = 0
+house4 = house()
+house4.supply = 'own battery'
+house4.price = 100
+house4.state = 'buyer'
+house4.firstrelay = 1
+house4.secondrelay = 2
+house4.load = 0
     
     
         
@@ -90,15 +93,38 @@ class house:
         self.connect_to_other_house
         other.connect_to_other_house
         
-    def main_program():
-        house1.connect_to_solar
-        house2.connect_to_solar
-        house3.connect_to_solar
-        house4.connect_to_solar
-        buyer = price_comparison()
-        seller = bigger_load()
-        buyer.connect_to_other_house(seller)
-        house3.connect_to_main
-        time.sleep(20.0)
-        seller.connect_to_solar
-        buyer.connect_to_solar
+        
+class Event:
+    def _init_(self):
+        self.time = 0   #time in minutes
+        self.house = 'house1'
+        self.loadusage = 4    #usage of load in percentages of battery
+        
+    def define_event_random(self):
+        self.time = random.randint(0, 1080)
+        self.house = random.choice(['house1','house2','house3','house4'])
+        self.loadusage = random.randint(1,40)
+        
+class list_events:
+    def _init_(self):
+        self.list_events = []
+ 
+
+    
+class dispatcher:
+    self.list_events = []
+    
+    def add_events_from_lists(self, _list_event):
+        for i in range (0,len(list_event))
+        self.list_events.append(list_event[i])
+        self.list_events.sort(key=lambda x: x.time, reverse=False)
+            
+        
+dispatcher1 = dispatcher() 
+
+Take_a_shower = Event()
+Take_a_shower = 
+dispatcher1.add_events_from_lists(list_event1)
+dispatcher1.add_events_from_lists(list_event2)
+dispatcher1.add_events_from_lists(list_event3)
+dispatcher1.add_events_from_lists(list_event4)
