@@ -38,15 +38,6 @@ class house:
             board.digital[second_relay_to_change].write(1)  #turns the second relay off  
             self.supply = 'exchange'
             
-    def price_comparison():
-        liste = [house1,house2,house3,house4]
-        a = liste[0].price
-        k = 0
-        for i in range(1, len(liste)):
-                if liste[i]>a:
-                    a = liste[i]
-                    k = i
-        return(liste[k])  
         
                     
                     
@@ -58,7 +49,7 @@ class house:
         self.list_events.append(event)
         
     def compute_price(self):
-        self.price = - self.load*0.10 +11
+        self.price = 1
         
         
         
@@ -79,7 +70,7 @@ house2.price = 0
 house2.state = 'seller'
 house2.firstrelay = 5
 house2.secondrelay = 6
-house2.load = 90
+house2.load = 9000
 house2.bankaccount = 5000
 house2.list_events = []
 
@@ -121,7 +112,7 @@ class Event:
 event1 = Event() 
 event1.time = 20
 event1.house = 'house1'
-event1.load_usage = 20
+event1.load_usage = 720
 
 event2 = Event() 
 event2.time = 200
@@ -217,7 +208,7 @@ house4.add_event(event12)
 
 
 solar = 30
-price_main_generator = 5
+main_generator_price = 5
 
 
 
@@ -245,60 +236,58 @@ class dispatcher:
         if string[5] == '4':
             house_event = house4     
         list_houses = [house1, house2 , house3, house4]
-        list_houses.remove(house_event.encode('utf-8'))
+        list_houses.remove(house_event)
         if self.dispatcher[0].load_usage < house_event.load:               #we use the battery if we have enough power
             house_event.load += - self.dispatcher[0].load_usage
         else:
+            list_house_seller = []
             for i in range(0, len(list_houses)):
-                if list_houses[i].load<self.dispatcher[0].load_usage:   #if not we compute a list of houses having enough load and their prices
-                    list_houses.remove(list_houses[i])
-            for i in range(0, len(list_houses)):
-                list_houses[i].compute_price
-            list_houses.sort(key=lambda x: x.price)                        #we sort them by price
-            if list_houses[0].price < main_generator_price:
+                if list_houses[i].load>self.dispatcher[0].load_usage: 
+                                                                 #if not we compute a list of houses having enough load and their prices
+                    list_house_seller.append(list_houses[i])
+            if len(list_house_seller) ==0:
                 if house_event.bankaccount> main_generator_price*self.dispatcher[0].load_usage:
                     house_event.bankaccount += - main_generator_price*self.dispatcher[0].load_usage    #we use the main if its cheaper
                     house_event.connect_to_main
-            else: 
-                if house_event.bankaccount> list_houses[0].price*self.dispatcher[0].load_usage:
-                    house_event.bankaccount += - list_houses[0].price*self.dispatcher[0].load_usage     #otherwise we connect 2 houses
-                    list_houses[0].bankaccount += list_houses[0].price*self.dispatcher[0].load_usage
-                    list_houses[0].load += - self.dispatcher[0].load_usage
-                    house_event.connect_2_houses(list_houses[0])
-                    
-                    
-                
-                    
-                    
-                    
-
-    
-
-                
-            
-            
-                
-                
-                
-            
-            
-            
-
-
-                
-            
-            
-            
-    
-            
+                else: 
+                    print('no money')
+            else:     
+                for i in range(0, len(list_house_seller)):
+                    list_house_seller[i].price= 2
+                list_house_seller.sort(key=lambda x: x.price)                        #we sort them by price
+                if list_house_seller[0].price > main_generator_price:
+                    if house_event.bankaccount> main_generator_price*self.dispatcher[0].load_usage:
+                        house_event.bankaccount += - main_generator_price*self.dispatcher[0].load_usage    #we use the main if its cheaper
+                        house_event.connect_to_main
+                    else:
+                        print('no money')
+                else: 
+                    if house_event.bankaccount> list_house_seller[0].price*self.dispatcher[0].load_usage:
+                        house_event.bankaccount += - list_house_seller[0].price*self.dispatcher[0].load_usage 
+                                                                                               #otherwise we connect 2 houses
+                        list_house_seller[0].bankaccount += list_house_seller[0].price*self.dispatcher[0].load_usage
+                        
+                        list_house_seller[0].load += - self.dispatcher[0].load_usage
+                        house_event.connect_2_houses(list_house_seller[0])
+                    else: 
+                        print('no money')
+                                  
         
-# dispatcher1 = dispatcher() 
-# dispatcher1.dispatcher = []
+dispatcher1 = dispatcher() 
+dispatcher1.dispatcher = []
 
-# dispatcher1.add_events_from_lists(house1.list_events)
-# dispatcher1.add_events_from_lists(house2.list_events)
-# dispatcher1.add_events_from_lists(house3.list_events)
-# dispatcher1.add_events_from_lists(house4.list_events)
+dispatcher1.add_events_from_lists(house1.list_events)
+dispatcher1.add_events_from_lists(house2.list_events)
+dispatcher1.add_events_from_lists(house3.list_events)
+dispatcher1.add_events_from_lists(house4.list_events)
+
+dispatcher1.run_dispatcher()
+
+print(house1.bankaccount)
+
+
+
 
 # for i in range (0, len(dispatcher1.dispatcher)):
-#     print(dispatcher1.dispatcher[i].time)
+#      print(dispatcher1.dispatcher[i].house)
+    
