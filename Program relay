@@ -2,6 +2,7 @@ from pyfirmata import Arduino,util
 import time
 import random
 import numpy as np
+import pickle
 # board = pyfirmata.Arduino('COM3')
 
 class house:
@@ -59,15 +60,7 @@ class house:
     def compute_price(self):
         self.price = - self.load*0.10 +11
         
-def bigger_load():
-        liste = [house1,house2,house3,house4]
-        a = liste[0].load
-        k = 0
-        for i in range(1, len(liste)):
-                if liste[i]>a:
-                    a = liste[i]
-                    k = i
-        return(liste[k])        
+        
         
 house1 = house()
 house1.supply = 'own battery'
@@ -224,6 +217,9 @@ house4.add_event(event12)
 
 
 solar = 30
+price_main_generator = 5
+
+
 
 class dispatcher:
     def _init_(self):
@@ -236,21 +232,50 @@ class dispatcher:
             
     def run_dispatcher(self): 
         house1.load += self.dispatcher[0].time * solar
-        house2.load += self.dispatcher[0].time * solar
+        house2.load += self.dispatcher[0].time * solar         #we compute how much solar energy we gained from the time before the event
         house3.load += self.dispatcher[0].time * solar
         house4.load += self.dispatcher[0].time * solar
-        house_event = self.dispatcher[0].house
+        string = self.dispatcher[0].house
+        if string[5] == '1':
+            house_event = house1
+        if string[5] == '2':
+            house_event = house2 
+        if string[5] == '3':                             #we want to find which house is having the event
+            house_event = house3 
+        if string[5] == '4':
+            house_event = house4     
         list_houses = [house1, house2 , house3, house4]
         list_houses.remove(house_event.encode('utf-8'))
-        if self.dispatcher[0].load < self.dispatcher[0].house.encode('utf-8').load:
-            self.dispatcher[0].house.encode('utf-8').load += - self.dispatcher[0].load
+        if self.dispatcher[0].load_usage < house_event.load:               #we use the battery if we have enough power
+            house_event.load += - self.dispatcher[0].load_usage
         else:
             for i in range(0, len(list_houses)):
-                if list_houses[i].load<self.dispatcher[0].load:
+                if list_houses[i].load<self.dispatcher[0].load_usage:   #if not we compute a list of houses having enough load and their prices
                     list_houses.remove(list_houses[i])
             for i in range(0, len(list_houses)):
                 list_houses[i].compute_price
-            list_houses.sort(key=lambda x: x.price)
+            list_houses.sort(key=lambda x: x.price)                        #we sort them by price
+            if list_houses[0].price < main_generator_price:
+                if house_event.bankaccount> main_generator_price*self.dispatcher[0].load_usage:
+                    house_event.bankaccount += - main_generator_price*self.dispatcher[0].load_usage    #we use the main if its cheaper
+                    house_event.connect_to_main
+            else: 
+                if house_event.bankaccount> list_houses[0].price*self.dispatcher[0].load_usage:
+                    house_event.bankaccount += - list_houses[0].price*self.dispatcher[0].load_usage     #otherwise we connect 2 houses
+                    list_houses[0].bankaccount += list_houses[0].price*self.dispatcher[0].load_usage
+                    list_houses[0].load += - self.dispatcher[0].load_usage
+                    house_event.connect_2_houses(list_houses[0])
+                    
+                    
+                
+                    
+                    
+                    
+
+    
+
+                
+            
             
                 
                 
@@ -277,4 +302,3 @@ class dispatcher:
 
 # for i in range (0, len(dispatcher1.dispatcher)):
 #     print(dispatcher1.dispatcher[i].time)
-    
