@@ -3,18 +3,54 @@ import time
 import random
 import numpy as np
 import pickle
-# board = pyfirmata.Arduino('COM3')
+board = Arduino('COM5')
 
-class house:
+class Event:
+    def _init_(self):
+        self.time = 0   #time in minutes
+        self.house = house
+        self.load_usage = 4    #usage of load in percentages of battery
+        
+    def define_event_random(self, house):
+        self.time = random.randint(0, 1080)
+        self.house = house
+        self.load_usage = random.randint(1,50)
+        
+class House:
     def _init_(self):
         self.supply = 'main Generator'
         self.price = 0
         self.state = 'seller'
         self.firstrelay = 0
         self.secondrelay = 0
-        self.load = 100
+        self.charge= 100
         self.bankaccount = 5000
         self.list_events = []
+        self.neighbour = []
+        house.number = 0
+
+class Event:
+    def _init_(self,house):
+        self.time = 0   #time in minutes
+        self.house = house
+        self.load_usage = 4    #usage of load in percentages of battery
+        
+    def define_event_random(self, house):
+        self.time = random.randint(0, 1080)
+        self.house = house
+        self.load_usage = random.randint(1,50)
+        
+class House:
+    def _init_(self):
+        self.supply = 'main Generator'
+        self.price = 0
+        self.state = 'seller'
+        self.firstrelay = 0
+        self.secondrelay = 0
+        self.charge= 100
+        self.bankaccount = 5000
+        self.list_events = []
+        self.neighbour = []
     
         
     def connect_to_solar(self):
@@ -50,124 +86,189 @@ class house:
         
     def compute_price(self):
         self.price = 1
+    
+        
+
+def solar(time):
+    return(time)
+
+class Dispatcher:
+    
+    def _init_(self,list_house):
+        self.event_list = []
+        self.current_time = 0
+    
+    def add_events_from_lists(self, list_event):
+        for i in range (0,len(list_event)):
+            self.event_list.append(list_event[i])
+        self.event_list.sort(key=lambda x: x.time, reverse=False)
+            
+        
+    def solar_event(self,event, list_house):
+        current_time = self.current_time
+        for i in range (0,len(list_house)):
+            list_house[i].charge += solar(event.time) - solar(self.current_time)
+        self.current_time = event.time
+        
+    def run_dispatcher(self,list_house):
+        for i in range (0,len(self.event_list)):
+            self.solar_event(self.event_list[i], list_house)
+            house_event = self.event_list[i].house
+            list_houses = house_event.neighbour
+            if self.event_list[i].load_usage < house_event.charge:               #we use the battery if we have enough power
+                house_event.charge += - self.event_list[i].load_usage
+            else:
+                list_house_seller = []
+                for j in range(0, len(list_houses)):
+                    if list_houses[j].charge>self.event_list[i].load_usage: 
+                                                                 #if not we compute a list of houses having enough load and their prices
+                        list_house_seller.append(list_houses[j])
+                if len(list_house_seller) ==0:
+                    if house_event.bankaccount> main_generator_price*self.event_list[i].load_usage:
+                        house_event.bankaccount += - main_generator_price*self.event_list[i].load_usage    #we use the main if its cheaper
+                        house_event.connect_to_main
+                    else: 
+                        print('no money')
+                else:     
+                    for k in range(0, len(list_house_seller)):
+                        list_house_seller[k].price= 2
+                    list_house_seller.sort(key=lambda x: x.price)                        #we sort them by price
+                    if list_house_seller[0].price > main_generator_price:
+                        if house_event.bankaccount> main_generator_price*self.event_list[i].load_usage:
+                            house_event.bankaccount += - main_generator_price*self.event_list[i].load_usage    #we use the main if its cheaper
+                            house_event.connect_to_main
+                        else:
+                            print('no money')
+                    else: 
+                        if house_event.bankaccount> list_house_seller[0].price*self.event_list[i].load_usage:
+                            house_event.bankaccount += - list_house_seller[0].price*self.event_list[i].load_usage 
+                                                                                               #otherwise we connect 2 houses
+                            list_house_seller[0].bankaccount += list_house_seller[0].price*self.event_list[i].load_usage
+                        
+                            list_house_seller[0].charge += - self.event_list[i].load_usage
+                            house_event.connect_2_houses(list_house_seller[0])
+                        else: 
+                            print('no money')
         
         
         
-house1 = house()
+house1 = House()
 house1.supply = 'own battery'
 house1.price = 0
 house1.state = 'seller'
 house1.firstrelay = 7
 house1.secondrelay = 8
-house1.load = 100
+house1.charge = 100
 house1.bankaccount = 5000
 house1.list_events = []
+house1.neighbour= []
+house1.number = 1
 
     
-house2 = house()
+house2 = House()
 house2.supply = 'own battery'
 house2.price = 0
 house2.state = 'seller'
 house2.firstrelay = 5
 house2.secondrelay = 6
-house2.load = 9000
+house2.charge = 9000
 house2.bankaccount = 5000
 house2.list_events = []
-
+house2.neighbour= []
+house2.number = 2
     
-house3 = house()
+house3 = House()
 house3.supply = 'own battery'
 house3.price = 50
 house3.state = 'buyer'
 house3.firstrelay = 3
 house3.secondrelay = 4
-house3.load = 25  
+house3.charge = 25  
 house3.bankaccount = 5000
 house3.list_events = []
+house3.neighbour = []
+house3.number = 3
     
-house4 = house()
+house4 = House()
 house4.supply = 'own battery'
 house4.price = 100
 house4.state = 'buyer'
 house4.firstrelay = 1
 house4.secondrelay = 2
-house4.load = 0 
+house4.charge = 0 
 house4.bankaccount = 5000
 house4.list_events = []
+house4.neighbour = []
+house4.number = 0
 
 
-        
-        
-class Event:
-    def _init_(self):
-        self.time = 0   #time in minutes
-        self.house = 'house1'
-        self.load_usage = 4    #usage of load in percentages of battery
-        
-    def define_event_random(self, house):
-        self.time = random.randint(0, 1080)
-        self.house = house
-        self.load_usage = random.randint(1,50)
+
+list_house = [house1,house2,house3,house4]
+for i in range (0,len(list_house)):
+    houses =[house1,house2,house3,house4]
+    del houses[i]
+    list_house[i].neighbour = houses
+
 
 event1 = Event() 
 event1.time = 20
-event1.house = 'house1'
 event1.load_usage = 720
+event1.house = house1
 
 event2 = Event() 
 event2.time = 200
-event2.house = 'house1'
 event2.load_usage = 30
+event2.house = house1
 
 event3 = Event() 
 event3.time = 800
-event3.house = 'house1'
 event3.load_usage = 50
+event3.house = house1
 
 event4 = Event() 
 event4.time = 300
-event4.house = 'house2'
 event4.load_usage = 34
+event4.house= house2
 
 event5 = Event() 
 event5.time = 150
-event5.house = 'house2'
 event5.load_usage = 45
+event5.house = house2 
 
 event6 = Event() 
 event6.time = 1000
-event6.house = 'house2'
 event6.load_usage = 12
+event6.house = house2
 
 event7 = Event()
 event7.time = 760
-event7.house = 'house3'
 event7.load_usage = 5
+event7.house= house3
 
 event8 = Event() 
 event8.time = 900
-event8.house = 'house3'
 event8.load_usage = 3
+event8.house= house3
 
 event9 = Event() 
 event9.time = 600
-event9.house = 'house3'
 event9.load_usage = 25 
+event9.house= house3
 
 event10= Event()
 event10.time = 550
-event10.house = 'house4'
 event10.load_usage = 5
+event10.house= house4
 
 event11 = Event() 
 event11.time = 900
-event11.house = 'house4'
 event11.load_usage = 3
+event11.house= house4
 
 event12 = Event() 
 event12.time = 600
-event12.house = 'house4'
 event12.load_usage = 25 
+event12.house= house4
 
 house1.add_event(event1)
 house1.add_event(event2)
@@ -207,87 +308,27 @@ house4.add_event(event12)
 #     house4.add_event(event)    
 
 
-solar = 30
 main_generator_price = 5
 
 
 
-class dispatcher:
-    def _init_(self):
-        self.dispatcher = []
-    
-    def add_events_from_lists(self, list_event):
-        for i in range (0,len(list_event)):
-            self.dispatcher.append(list_event[i])
-            self.dispatcher.sort(key=lambda x: x.time, reverse=False)
-            
-    def run_dispatcher(self): 
-        house1.load += self.dispatcher[0].time * solar
-        house2.load += self.dispatcher[0].time * solar         #we compute how much solar energy we gained from the time before the event
-        house3.load += self.dispatcher[0].time * solar
-        house4.load += self.dispatcher[0].time * solar
-        string = self.dispatcher[0].house
-        if string[5] == '1':
-            house_event = house1
-        if string[5] == '2':
-            house_event = house2 
-        if string[5] == '3':                             #we want to find which house is having the event
-            house_event = house3 
-        if string[5] == '4':
-            house_event = house4     
-        list_houses = [house1, house2 , house3, house4]
-        list_houses.remove(house_event)
-        if self.dispatcher[0].load_usage < house_event.load:               #we use the battery if we have enough power
-            house_event.load += - self.dispatcher[0].load_usage
-        else:
-            list_house_seller = []
-            for i in range(0, len(list_houses)):
-                if list_houses[i].load>self.dispatcher[0].load_usage: 
-                                                                 #if not we compute a list of houses having enough load and their prices
-                    list_house_seller.append(list_houses[i])
-            if len(list_house_seller) ==0:
-                if house_event.bankaccount> main_generator_price*self.dispatcher[0].load_usage:
-                    house_event.bankaccount += - main_generator_price*self.dispatcher[0].load_usage    #we use the main if its cheaper
-                    house_event.connect_to_main
-                else: 
-                    print('no money')
-            else:     
-                for i in range(0, len(list_house_seller)):
-                    list_house_seller[i].price= 2
-                list_house_seller.sort(key=lambda x: x.price)                        #we sort them by price
-                if list_house_seller[0].price > main_generator_price:
-                    if house_event.bankaccount> main_generator_price*self.dispatcher[0].load_usage:
-                        house_event.bankaccount += - main_generator_price*self.dispatcher[0].load_usage    #we use the main if its cheaper
-                        house_event.connect_to_main
-                    else:
-                        print('no money')
-                else: 
-                    if house_event.bankaccount> list_house_seller[0].price*self.dispatcher[0].load_usage:
-                        house_event.bankaccount += - list_house_seller[0].price*self.dispatcher[0].load_usage 
-                                                                                               #otherwise we connect 2 houses
-                        list_house_seller[0].bankaccount += list_house_seller[0].price*self.dispatcher[0].load_usage
-                        
-                        list_house_seller[0].load += - self.dispatcher[0].load_usage
-                        house_event.connect_2_houses(list_house_seller[0])
-                    else: 
-                        print('no money')
-                                  
         
-dispatcher1 = dispatcher() 
-dispatcher1.dispatcher = []
+dispatcher1 = Dispatcher() 
+dispatcher1.event_list = []
+dispatcher1.current_time = 0
 
 dispatcher1.add_events_from_lists(house1.list_events)
 dispatcher1.add_events_from_lists(house2.list_events)
 dispatcher1.add_events_from_lists(house3.list_events)
 dispatcher1.add_events_from_lists(house4.list_events)
 
-dispatcher1.run_dispatcher()
+#dispatcher1.run_dispatcher(list_house)
 
-print(house1.bankaccount)
+#print([item.bankaccount for item in list_house])
+#print([item.charge for item in list_house])
 
 
-
+house1.connect_to_main
 
 # for i in range (0, len(dispatcher1.dispatcher)):
 #      print(dispatcher1.dispatcher[i].house)
-    
