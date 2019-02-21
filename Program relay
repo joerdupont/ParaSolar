@@ -3,7 +3,7 @@ import time
 import random
 import numpy as np
 import pickle
-board = Arduino('COM5')
+#board = Arduino('COM5')
 
 class Event:
     def _init_(self):
@@ -85,12 +85,18 @@ class House:
         self.list_events.append(event)
         
     def compute_price(self):
-        self.price = 1
+        charge = self.charge
+        if charge >= 50:
+            self.price = (-2/25)*charge+9
+        else:
+            self.price = (15+10/9) -(2/9)*charge
     
         
 
 def solar(time):
-    return(time)
+    y = (-1/144)*(time**3)*(1/3)+ (65/12)*(time**2)*(0.5)
+    y = y/15210
+    return(y)
 
 class Dispatcher:
     
@@ -131,7 +137,7 @@ class Dispatcher:
                         print('no money')
                 else:     
                     for k in range(0, len(list_house_seller)):
-                        list_house_seller[k].price= 2
+                        list_house_seller[k].compute_price()
                     list_house_seller.sort(key=lambda x: x.price)                        #we sort them by price
                     if list_house_seller[0].price > main_generator_price:
                         if house_event.bankaccount> main_generator_price*self.event_list[i].load_usage:
@@ -171,7 +177,7 @@ house2.price = 0
 house2.state = 'seller'
 house2.firstrelay = 5
 house2.secondrelay = 6
-house2.charge = 9000
+house2.charge = 90
 house2.bankaccount = 5000
 house2.list_events = []
 house2.neighbour= []
@@ -212,7 +218,7 @@ for i in range (0,len(list_house)):
 
 event1 = Event() 
 event1.time = 20
-event1.load_usage = 720
+event1.load_usage = 60
 event1.house = house1
 
 event2 = Event() 
@@ -322,13 +328,15 @@ dispatcher1.add_events_from_lists(house2.list_events)
 dispatcher1.add_events_from_lists(house3.list_events)
 dispatcher1.add_events_from_lists(house4.list_events)
 
-#dispatcher1.run_dispatcher(list_house)
+dispatcher1.run_dispatcher(list_house)
 
-#print([item.bankaccount for item in list_house])
-#print([item.charge for item in list_house])
+print([item.bankaccount for item in list_house])
+print([item.charge for item in list_house])
 
 
-house1.connect_to_main
+#house1.connect_to_main()
 
 # for i in range (0, len(dispatcher1.dispatcher)):
 #      print(dispatcher1.dispatcher[i].house)
+
+    
