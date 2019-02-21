@@ -118,6 +118,8 @@ class Dispatcher:
         
     def run_dispatcher(self,list_house):
         for i in range (0,len(self.event_list)):
+            time.sleep(2)
+            print(i)
             self.solar_event(self.event_list[i], list_house)
             house_event = self.event_list[i].house
             list_houses = house_event.neighbour
