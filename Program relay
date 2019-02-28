@@ -63,7 +63,7 @@ class House:
             first_relay_to_change = self.firstrelay+1
             second_relay_to_change = self.secondrelay+1
             board.digital[first_relay_to_change].write(1)   #turns the first relay off
-            board.digital[second_relay_to_change].write(1)  #turns the second relay off
+            board.digital[second_relay_to_change].write(0)  #turns the second relay on
             self.supply = 'main generator'
 
     def connect_to_other_house(self):
